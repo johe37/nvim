@@ -17,7 +17,10 @@ return require('packer').startup(function(use)
   }
 
   -- COLORSCHEME
-  use { "rose-pine/neovim", as = "rose-pine" }
+  use {
+	  "rockyzhang24/arctic.nvim",
+	  requires = { "rktjmp/lush.nvim" }
+  }
 
   -- TREESITTER
   use('nvim-treesitter/nvim-treesitter', {run = ':TSUpdate'})
