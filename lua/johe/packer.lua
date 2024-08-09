@@ -20,5 +20,8 @@ return require('packer').startup(function(use)
   use { "rose-pine/neovim", as = "rose-pine" }
 
   -- TREESITTER
-  use ('nvim-treesitter/nvim-treesitter', {run = ':TSUpdate'})
+  use('nvim-treesitter/nvim-treesitter', {run = ':TSUpdate'})
+
+  -- HARPOON
+  use('theprimeagen/harpoon')
 end)
