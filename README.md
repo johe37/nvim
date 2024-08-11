@@ -1,5 +1,7 @@
 # nvim
 
+Efter `git clone`, öppna `~/.config/nvim/lua/johe/packer.lua` och kör sedan `PackerSync`
+
 ## Requirements
 
 - nvim>0.9.0
