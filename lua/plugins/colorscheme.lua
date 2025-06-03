@@ -1,13 +1,33 @@
 return {
-    "gmr458/vscode_modern_theme.nvim",
-    lazy = false,
+  {
+    "Mofiqul/vscode.nvim",
     priority = 1000,
     config = function()
-        require("vscode_modern").setup({
-            cursorline = true,
-            transparent_background = false,
-            nvim_tree_darker = true,
-        })
-        vim.cmd.colorscheme("vscode_modern")
+      vim.o.background = "dark" -- or "light" if you prefer
+      require("vscode").setup({
+        transparent = false,
+        italic_comments = true,
+      })
+      vim.cmd("colorscheme vscode")
     end,
+  },
 }
+
+-- return {
+--   {
+--     "folke/tokyonight.nvim",
+--     priority = 1000, -- Load before other plugins
+--     config = function()
+--       require("tokyonight").setup({
+--         style = "night", -- Choose from: "storm", "night", "moon", "day"
+--         transparent = false,
+--         terminal_colors = true,
+--         styles = {
+--           comments = { italic = false },
+--           keywords = { italic = false },
+--         },
+--       })
+--       vim.cmd.colorscheme("tokyonight-night")
+--     end,
+--   },
+-- }
