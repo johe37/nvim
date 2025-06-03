@@ -14,6 +14,3 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Load plugins from lua/plugins/
 require("lazy").setup("plugins")
-
--- Enable true color support
-vim.o.termguicolors = true
