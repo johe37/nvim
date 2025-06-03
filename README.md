@@ -1,13 +1,14 @@
 # nvim
 
-Efter `git clone`, öppna `~/.config/nvim/lua/johe/packer.lua` och kör sedan `PackerSync`
+My setup for NVIM.
 
 ## Requirements
 
 - nvim>0.9.0
-- https://github.com/wbthomason/packer.nvim
 - ripgrep
 
-### Good to know
+## Getting started
 
-- Command `PackerSync` in vim
+```shell
+git clone https://github.com/johe37/nvim.git ~/.config/nvim
+```
