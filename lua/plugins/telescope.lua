@@ -26,8 +26,8 @@ return {
           layout_config = {
             prompt_position = "top",
           },
-          sorting_strategy = "ascending",
-          winblend = 10,
+          -- sorting_strategy = "ascending",
+          -- winblend = 10,
         },
         pickers = {
           find_files = {
