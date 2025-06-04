@@ -2,7 +2,17 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     tag = "0.1.6",
-    dependencies = { "nvim-lua/plenary.nvim" },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      {
+        "nvim-telescope/telescope-fzf-native.nvim",
+        build = "make",
+        cond = vim.fn.executable("make") == 1,
+        config = function()
+          require("telescope").load_extension("fzf")
+        end,
+      },
+    },
     cmd = "Telescope",
     keys = {
       { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files" },
@@ -21,7 +31,16 @@ return {
         },
         pickers = {
           find_files = {
-            hidden = true,
+            hidden = true,     -- Show dotfiles (like `.gitlab/`)
+            no_ignore = false, -- Honor .gitignore
+          },
+        },
+        extensions = {
+          fzf = {
+            fuzzy = true,
+            override_generic_sorter = true,
+            override_file_sorter = true,
+            case_mode = "smart_case",
           },
         },
       })
