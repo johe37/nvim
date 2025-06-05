@@ -19,6 +19,7 @@ return {
       { "<leader>fg", "<cmd>Telescope live_grep<cr>",  desc = "Live Grep" },
       { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "Find Buffers" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "Find Help" },
+      { "<leader>fd", "<cmd>LiveGrepInDir<cr>", desc = "Live Grep in Directory" },
     },
     config = function()
       require("telescope").setup({
@@ -44,6 +45,14 @@ return {
           },
         },
       })
+      vim.api.nvim_create_user_command("LiveGrepInDir", function()
+        vim.ui.input({ prompt = "Grep in directory: ", completion = "dir" }, function(input)
+          if input and input ~= "" then
+            require("telescope.builtin").live_grep({ cwd = input })
+          end
+        end)
+      end, {})
+
     end,
   },
 }
