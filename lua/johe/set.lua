@@ -1,22 +1,21 @@
-vim.g.mapleader = " " 				-- leader key is space
+-- Set leader key
+vim.g.mapleader = " "  -- Use space as leader key
 
-vim.opt.guicursor = ""              -- fat cursor
+-- UI Settings
+vim.opt.guicursor = ""         -- Use block (fat) cursor
+vim.opt.nu = true              -- Show line numbers
+vim.opt.wrap = false           -- Disable line wrapping
+vim.opt.termguicolors = true   -- Enable true color support
+vim.opt.scrolloff = 8          -- Keep 8 lines of context when scrolling
 
-vim.opt.nu = true				    -- line numbers
+-- Tab and Indentation
+vim.opt.tabstop = 2            -- Number of spaces per tab
+vim.opt.softtabstop = 2        -- Number of spaces when pressing Tab
+vim.opt.shiftwidth = 2         -- Indentation width
+vim.opt.expandtab = true       -- Convert tabs to spaces
+vim.opt.smartindent = true     -- Smart indentation
 
--- indent 4
-vim.opt.tabstop = 2
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.expandtab = true
-vim.opt.smartindent = true
-
-vim.opt.wrap = false                -- dont line wrap
-
-vim.opt.hlsearch = false            -- highlight search results
-vim.opt.incsearch = true            -- incremental search
-
-vim.opt.termguicolors = true
-
-vim.opt.scrolloff = 8
+-- Search
+vim.opt.hlsearch = false       -- Do not highlight search results
+vim.opt.incsearch = true       -- Show matches as you type
 
