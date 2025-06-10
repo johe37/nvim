@@ -16,6 +16,6 @@ vim.opt.expandtab = true       -- Convert tabs to spaces
 vim.opt.smartindent = true     -- Smart indentation
 
 -- Search
-vim.opt.hlsearch = false       -- Do not highlight search results
-vim.opt.incsearch = true       -- Show matches as you type
+vim.o.hlsearch = true         -- Highlight search results
+vim.o.incsearch = true        -- Show matches as you type
 
