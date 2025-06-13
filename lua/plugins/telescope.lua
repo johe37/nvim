@@ -27,13 +27,35 @@ return {
           layout_config = {
             prompt_position = "top",
           },
-          -- sorting_strategy = "ascending",
-          -- winblend = 10,
+          vimgrep_arguments = {
+            "rg",
+            "--color=never",
+            "--no-heading",
+            "--with-filename",
+            "--line-number",
+            "--column",
+            "--smart-case",
+            "--hidden",               -- include hidden files
+            "--glob", "!.git/",       -- exclude .git/
+            "--glob", "!node_modules/",
+            "--glob", "!venv/",
+            "--glob", "!.venv/",
+          },
         },
         pickers = {
           find_files = {
-            hidden = true,     -- Show dotfiles (like `.gitlab/`)
-            no_ignore = false, -- Honor .gitignore
+                hidden = true,
+                no_ignore = true,
+                find_command = {
+                  "fd", ".", "--type", "f",
+                  "--hidden",
+                  "--no-ignore",
+                  "--no-ignore-vcs",
+                  "--exclude", ".git",
+                  "--exclude", "node_modules",
+                  "--exclude", "venv",
+                  "--exclude", ".venv",
+                },
           },
         },
         extensions = {
@@ -56,4 +78,3 @@ return {
     end,
   },
 }
-
