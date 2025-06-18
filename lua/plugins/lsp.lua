@@ -102,11 +102,5 @@ return {
         prefix = "",
       },
     })
-
-    -- FormS manually: <leader>f
-    vim.keymap.set("n", "<leader>f", function()
-      vim.notify("Trying to format buffer...", vim.log.levels.INFO)
-      vim.lsp.buf.format({ async = true })
-    end, { desc = "LSP: Format buffer" })
   end,
 }
