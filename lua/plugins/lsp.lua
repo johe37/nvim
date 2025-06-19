@@ -61,14 +61,6 @@ return {
       }),
     })
 
-    -- Manual LSP: CoffeeScript (not in mason-lspconfig)
-    lspconfig.coffeesense.setup({
-      cmd = { "coffeesense-language-server", "--stdio" },
-      filetypes = { "coffee" },
-      root_dir = lspconfig.util.root_pattern(".git", "*.coffee"),
-      capabilities = capabilities,
-    })
-
     -- Completion engine config
     local cmp_select = { behavior = cmp.SelectBehavior.Select }
     cmp.setup({
