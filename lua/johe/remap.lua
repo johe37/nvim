@@ -12,3 +12,9 @@ vim.keymap.set("n", "<leader>Y", "\"+Y")        -- Yank entire line to system cl
 -- Tmux integration
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww goto<CR>")  -- Open tmux window and run `goto`
 
+-- Go to the next buffer with Tab
+vim.keymap.set('n', '<Tab>', ':bnext<CR>', { noremap = true, silent = true })
+
+-- Go to the previous buffer with Shift+Tab
+vim.keymap.set('n', '<S-Tab>', ':bprevious<CR>', { noremap = true, silent = true })
+
