@@ -36,8 +36,9 @@ return {
             "--line-number",
             "--column",
             "--smart-case",
-            "--hidden",               -- include hidden files
-            "--glob", "!.git/",       -- exclude .git/
+            "--hidden",
+            "--no-ignore-vcs",
+            "--glob", "!.git/",
             "--glob", "!node_modules/",
             "--glob", "!venv/",
             "--glob", "!.venv/",
@@ -45,18 +46,17 @@ return {
         },
         pickers = {
           find_files = {
-                hidden = true,
-                no_ignore = true,
-                find_command = {
-                  "fd", ".", "--type", "f",
-                  "--hidden",
-                  "--no-ignore",
-                  "--no-ignore-vcs",
-                  "--exclude", ".git",
-                  "--exclude", "node_modules",
-                  "--exclude", "venv",
-                  "--exclude", ".venv",
-                },
+            hidden = true,
+            find_command = {
+              "rg",
+              "--files",
+              "--hidden",
+              "--no-ignore-vcs",
+              "--glob", "!.git/*",
+              "--glob", "!node_modules/*",
+              "--glob", "!venv/*",
+              "--glob", "!.venv/*",
+            },
           },
         },
         extensions = {
