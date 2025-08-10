@@ -23,6 +23,19 @@ return {
 
     local capabilities = cmp_lsp.default_capabilities()
 
+    local on_attach = function(_, bufnr)
+      local opts = { noremap = true, silent = true, buffer = bufnr }
+      local keymap = vim.keymap.set
+
+      keymap("n", "K", vim.lsp.buf.hover, opts) -- Hover docs
+      keymap("n", "gd", vim.lsp.buf.definition, opts) -- Go to definition
+      keymap("n", "gr", vim.lsp.buf.references, opts) -- References
+      keymap("n", "<leader>rn", vim.lsp.buf.rename, opts) -- Rename
+      keymap("n", "<leader>ca", vim.lsp.buf.code_action, opts) -- Code actions
+      keymap("i", "<C-h>", vim.lsp.buf.signature_help, opts) -- Signature help
+      keymap("n", "<leader>e", vim.diagnostic.open_float, opts)
+    end
+
     -- Initialize UI and LSP installer
     require("fidget").setup({})
     mason.setup()
@@ -32,6 +45,7 @@ return {
       lua_ls = function()
         lspconfig.lua_ls.setup({
           capabilities = capabilities,
+          on_attach = on_attach,
           settings = {
             Lua = {
               diagnostics = {
@@ -48,13 +62,14 @@ return {
       ensure_installed = {
         "ansiblels",
         "jsonls",
-        "lua_ls"
+        "pyright",
       },
       handlers = setmetatable(custom_servers, {
         __index = function()
           return function(server_name)
             lspconfig[server_name].setup({
               capabilities = capabilities,
+              on_attach = on_attach,
             })
           end
         end,
