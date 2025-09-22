@@ -12,3 +12,11 @@ My setup for NVIM.
 ```shell
 git clone https://github.com/johe37/nvim.git ~/.config/nvim
 ```
+
+## Keymaps
+
+Run the following cmd in nvim to check keymaps
+
+```shell
+Telescope keymays
+```

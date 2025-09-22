@@ -15,12 +15,12 @@ return {
     },
     cmd = "Telescope",
     keys = {
-      { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files" },
-      { "<leader>fg", "<cmd>Telescope live_grep<cr>",  desc = "Live Grep" },
-      { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "Find Buffers" },
-      { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "Find Help" },
-      { "<leader>fd", "<cmd>LiveGrepInDir<cr>", desc = "Live Grep in Directory" },
-      { "<leader>fr", "<cmd>Telescope resume<cr>", desc = "Resume Last Picker" },
+      { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Telescope Find Files" },
+      { "<leader>fg", "<cmd>Telescope live_grep<cr>",  desc = "Telescope Live Grep" },
+      { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "Telescope Find Buffers" },
+      { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "Telescope Find Help" },
+      { "<leader>fd", "<cmd>LiveGrepInDir<cr>", desc = "Telescope Live Grep in Directory" },
+      { "<leader>fr", "<cmd>Telescope resume<cr>", desc = "Telescope Resume Last Picker" },
     },
     config = function()
       require("telescope").setup({

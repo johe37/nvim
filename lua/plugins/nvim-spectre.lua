@@ -9,7 +9,7 @@ return {
       -- Keymaps
       vim.keymap.set('n', '<leader>sr', function()
         spectre.open()
-      end, { desc = 'Search & Replace in Project' })
+      end, { desc = 'Search and Replace in Project' })
 
       vim.keymap.set('n', '<leader>sw', function()
         spectre.open_visual({ select_word = true })
