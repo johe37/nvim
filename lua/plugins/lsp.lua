@@ -23,24 +23,38 @@ return {
 
     local capabilities = cmp_lsp.default_capabilities()
 
+    -- ========================
+    -- Global diagnostic keymaps
+    -- ========================
+    local global_opts = { noremap = true, silent = true }
+    vim.keymap.set("n", "<leader>e", function()
+      vim.diagnostic.open_float()
+    end, global_opts)
+    vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, global_opts)
+    vim.keymap.set("n", "]d", vim.diagnostic.goto_next, global_opts)
+    vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, global_opts)
+
+    -- ========================
+    -- Function called on LSP attach
+    -- ========================
     local on_attach = function(_, bufnr)
       local opts = { noremap = true, silent = true, buffer = bufnr }
       local keymap = vim.keymap.set
 
-      keymap("n", "K", vim.lsp.buf.hover, opts) -- Hover docs
-      keymap("n", "gd", vim.lsp.buf.definition, opts) -- Go to definition
-      keymap("n", "gr", vim.lsp.buf.references, opts) -- References
-      keymap("n", "<leader>rn", vim.lsp.buf.rename, opts) -- Rename
-      keymap("n", "<leader>ca", vim.lsp.buf.code_action, opts) -- Code actions
-      keymap("i", "<C-h>", vim.lsp.buf.signature_help, opts) -- Signature help
-      keymap("n", "<leader>e", vim.diagnostic.open_float, opts)
+      -- LSP keymaps
+      keymap("n", "K", vim.lsp.buf.hover, opts)
+      keymap("n", "gd", vim.lsp.buf.definition, opts)
+      keymap("n", "gr", vim.lsp.buf.references, opts)
+      keymap("n", "<leader>rn", vim.lsp.buf.rename, opts)
+      keymap("n", "<leader>ca", vim.lsp.buf.code_action, opts)
+      keymap("i", "<C-h>", vim.lsp.buf.signature_help, opts)
     end
 
-    -- Initialize UI and LSP installer
+    -- Initialize UI and Mason
     require("fidget").setup({})
     mason.setup()
 
-    -- Define custom server configurations
+    -- Custom server configurations
     local custom_servers = {
       lua_ls = function()
         lspconfig.lua_ls.setup({
@@ -111,3 +125,4 @@ return {
     })
   end,
 }
+
