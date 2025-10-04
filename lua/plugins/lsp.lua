@@ -27,7 +27,7 @@ return {
     -- Global diagnostic keymaps
     -- ========================
     local global_opts = { noremap = true, silent = true }
-    vim.keymap.set("n", "<leader>e", function()
+    vim.keymap.set("n", "<leader>d", function()
       vim.diagnostic.open_float()
     end, global_opts)
     vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, global_opts)

@@ -1,5 +1,5 @@
 -- File Explorer
-vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Open file explorer" })  -- Open file explorer (netrw)
+vim.keymap.set("n", "<leader>e", vim.cmd.Ex, { desc = "Open file explorer" })  -- Open file explorer (netrw)
 
 -- Paste over selection without yanking
 vim.keymap.set("x", "<leader>p", "\"_dP", { desc = "Paste over selection (keep clipboard)" })
