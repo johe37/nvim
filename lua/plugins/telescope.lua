@@ -15,11 +15,22 @@ return {
     },
     cmd = "Telescope",
     keys = {
+      -- find
       { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Telescope Find Files" },
-      { "<leader>fg", "<cmd>Telescope live_grep<cr>",  desc = "Telescope Live Grep" },
       { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "Telescope Find Buffers" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "Telescope Find Help" },
-      { "<leader>fd", "<cmd>LiveGrepInDir<cr>", desc = "Telescope Live Grep in Directory" },
+      { "<leader>fc", function()
+          require("telescope.builtin").find_files({ cwd = vim.fn.expand("%:p:h") })
+        end, desc = "Find Files in Current Dir" },
+
+      -- grep
+      { "<leader>sg", "<cmd>Telescope live_grep<cr>",  desc = "Telescope Live Grep" },
+      { "<leader>sd", "<cmd>LiveGrepInDir<cr>", desc = "Telescope Live Grep in Directory" },
+      { "<leader>sc", function()
+          require("telescope.builtin").live_grep({ cwd = vim.fn.expand("%:p:h") })
+        end, desc = "Live Grep in Current Dir" },
+
+      -- etc.
       { "<leader>fr", "<cmd>Telescope resume<cr>", desc = "Telescope Resume Last Picker" },
     },
     config = function()
