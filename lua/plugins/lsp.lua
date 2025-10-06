@@ -27,9 +27,9 @@ return {
     -- Global diagnostic keymaps
     -- ========================
     local global_opts = { noremap = true, silent = true }
-    vim.keymap.set("n", "<leader>d", function()
+    vim.keymap.set("n", "<leader>ds", function()
       vim.diagnostic.open_float()
-    end, { desc = "Show diagnostic for current line", noremao = true, silent = true }, global_opts)
+    end, { desc = "Show diagnostic for current line", noremap = true, silent = true }, global_opts)
 
     vim.keymap.set("n", "dp", vim.diagnostic.goto_prev,
       { desc = "Go to previous diagnostic", noremap = true, silent = true }, global_opts)
@@ -82,6 +82,22 @@ return {
               diagnostics = {
                 globals = { "vim", "it", "describe", "before_each", "after_each" },
               },
+            },
+          },
+        })
+      end,
+
+
+      pyright = function()
+        local venv = os.getenv("VIRTUAL_ENV")
+        local python_path = venv and (venv .. "/bin/python") or vim.fn.exepath("python")
+
+        lspconfig.pyright.setup({
+          capabilities = capabilities,
+          on_attach = on_attach,
+          settings = {
+            python = {
+              pythonPath = python_path,
             },
           },
         })
