@@ -29,10 +29,16 @@ return {
     local global_opts = { noremap = true, silent = true }
     vim.keymap.set("n", "<leader>d", function()
       vim.diagnostic.open_float()
-    end, global_opts)
-    vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, global_opts)
-    vim.keymap.set("n", "]d", vim.diagnostic.goto_next, global_opts)
-    vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, global_opts)
+    end, { desc = "Show diagnostic for current line", noremao = true, silent = true }, global_opts)
+
+    vim.keymap.set("n", "dp", vim.diagnostic.goto_prev,
+      { desc = "Go to previous diagnostic", noremap = true, silent = true }, global_opts)
+
+    vim.keymap.set("n", "dn", vim.diagnostic.goto_next,
+      { desc = "Go to next diagnostic", noremap = true, silent = true }, global_opts)
+
+    vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, 
+      { desc = "Open diagnostic in location list", noremap = true, silent = true }, global_opts)
 
     -- ========================
     -- Function called on LSP attach
@@ -42,12 +48,23 @@ return {
       local keymap = vim.keymap.set
 
       -- LSP keymaps
-      keymap("n", "K", vim.lsp.buf.hover, opts)
-      keymap("n", "gd", vim.lsp.buf.definition, opts)
-      keymap("n", "gr", vim.lsp.buf.references, opts)
-      keymap("n", "<leader>rn", vim.lsp.buf.rename, opts)
-      keymap("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-      keymap("i", "<C-h>", vim.lsp.buf.signature_help, opts)
+      keymap("n", "K", vim.lsp.buf.hover,
+        { desc = "Show hover documentation", buffer = bufnr, noremap = true, silent = true }, opts)
+
+      keymap("n", "gd", vim.lsp.buf.definition, 
+        { desc = "Go to definition", buffer = bufnr, noremap = true, silent = true }, opts)
+
+      keymap("n", "gr", vim.lsp.buf.references,
+        { desc = "List references", buffer = bufnr, noremap = true, silent = true }, opts)
+
+      keymap("n", "<leader>rn", vim.lsp.buf.rename,
+        { desc = "Rename symbol", buffer = bufnr, noremap = true, silent = true }, opts)
+
+      keymap("n", "<leader>ca", vim.lsp.buf.code_action,
+        { desc = "Code actions", buffer = bufnr, noremap = true, silent = true }, opts)
+
+      keymap("i", "<C-h>", vim.lsp.buf.signature_help,
+        { desc = "Signature help", buffer = bufnr, noremap = true, silent = true }, opts)
     end
 
     -- Initialize UI and Mason
