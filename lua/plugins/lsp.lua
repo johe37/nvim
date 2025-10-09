@@ -73,6 +73,7 @@ return {
 
     -- Custom server configurations
     local custom_servers = {
+
       lua_ls = function()
         lspconfig.lua_ls.setup({
           capabilities = capabilities,
@@ -102,7 +103,31 @@ return {
           },
         })
       end,
+
+      ts_ls = function()
+        lspconfig.ts_ls.setup({
+          capabilities = capabilities,
+          on_attach = function(client, bufnr)
+            -- Disable ts_ls formatting if using external formatter (prettier/eslint/biome)
+            client.server_capabilities.documentFormattingProvider = false
+            client.server_capabilities.documentRangeFormattingProvider = false
+            on_attach(client, bufnr)
+          end,
+          -- Explicitly set filetypes (add any custom ones like .js.ejs)
+          filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "javascript.ejs" },
+          -- Settings for auto-imports
+          settings = {
+            javascript = {
+              suggest = { autoImports = true },
+            },
+            typescript = {
+              suggest = { autoImports = true },
+            },
+          },
+        })
+      end
     }
+
 
     -- Setup LSPs via mason-lspconfig
     mason_lspconfig.setup({
@@ -110,6 +135,7 @@ return {
         "ansiblels",
         "jsonls",
         "pyright",
+        "ts_ls"
       },
       handlers = setmetatable(custom_servers, {
         __index = function()
