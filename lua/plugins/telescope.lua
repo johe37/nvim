@@ -26,8 +26,8 @@ return {
       { "<leader>fg", "<cmd>Telescope git_files<cr>", desc = "Find Git Tracked Files" },
 
       -- grep
-      { "<leader>sg", "<cmd>Telescope live_grep<cr>",  desc = "Telescope Live Grep" },
-      { "<leader>sd", "<cmd>LiveGrepInDir<cr>", desc = "Telescope Live Grep in Directory" },
+      { "<leader>fw", "<cmd>Telescope live_grep<cr>",  desc = "Telescope Live Grep" },
+      { "<leader>fd", "<cmd>LiveGrepInDir<cr>", desc = "Telescope Live Grep in Directory" },
       { "<leader>sc", function()
           local dir = vim.b.netrw_curdir or vim.fn.expand("%:p:h")
           require("telescope.builtin").live_grep({ cwd = dir, prompt_title = "Live Grep in " .. dir })
