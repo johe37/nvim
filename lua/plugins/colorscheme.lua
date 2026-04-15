@@ -1,28 +1,23 @@
--- return {
---   {
---     "Mofiqul/vscode.nvim",
---     priority = 1000,
---     config = function()
---       vim.o.background = "dark" -- or "light" if you prefer
---       require("vscode").setup({
---         style = "dark_hc",
---         transparent = false,
---         italic_comments = true,
---       })
---       vim.cmd("colorscheme vscode")
---     end,
---   },
--- }
 return {
-    {
-      "nyoom-engineering/oxocarbon.nvim",
-      priority = 1000,
-      config = function()
-        vim.o.background = "dark"
-        vim.cmd("colorscheme oxocarbon")
-      end,
-    },
+  {
+    "Mofiqul/vscode.nvim",
+    priority = 1000,
+    config = function()
+      vim.o.background = "dark" -- or "light" if you prefer
+      vim.cmd("colorscheme vscode")
+    end,
+  },
 }
+--return {
+--    {
+--      "nyoom-engineering/oxocarbon.nvim",
+--      priority = 1000,
+--      config = function()
+--        vim.o.background = "dark"
+--        vim.cmd("colorscheme oxocarbon")
+--      end,
+--    },
+--}
 
 -- return {
 --   {
