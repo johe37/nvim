@@ -1,9 +1,13 @@
 -- Set leader key
 vim.g.mapleader = " "  -- Use space as leader key
 
--- Make Mason-installed binaries (e.g. tree-sitter CLI) discoverable to
--- plugins that shell out, without polluting the user's shell PATH.
-vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin:" .. vim.env.PATH
+-- Make Mason-installed binaries discoverable to plugins that shell out,
+-- without polluting the user's shell PATH. ~/.cargo/bin comes first so a
+-- cargo-built `tree-sitter` (built against the host glibc) is preferred
+-- over Mason's prebuilt one (which targets newer glibcs than RHEL 9 has).
+vim.env.PATH = vim.fn.expand("~/.cargo/bin")
+  .. ":" .. vim.fn.stdpath("data") .. "/mason/bin"
+  .. ":" .. vim.env.PATH
 
 -- UI Settings
 vim.opt.guicursor = ""         -- Use block (fat) cursor

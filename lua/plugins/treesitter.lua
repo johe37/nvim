@@ -12,10 +12,14 @@ return {
         "vimdoc",
         "python",
         "javascript",
+        "typescript",
         "html",
         "css",
         "json",
         "yaml",
+        "markdown",
+        "c",
+        "diff",
       }
 
       -- Asynchronously install/update parsers for the languages above.
