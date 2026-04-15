@@ -8,7 +8,7 @@ local capabilities = cmp_lsp.default_capabilities()
 -- ========================
 -- Global diagnostic keymaps
 -- ========================
-vim.keymap.set("n", "<leader>ds", vim.diagnostic.open_float,
+vim.keymap.set("n", "<leader>dc", vim.diagnostic.open_float,
   { desc = "Show diagnostic for current line" })
 vim.keymap.set("n", "dp", vim.diagnostic.goto_prev,
   { desc = "Go to previous diagnostic" })
@@ -16,6 +16,18 @@ vim.keymap.set("n", "dn", vim.diagnostic.goto_next,
   { desc = "Go to next diagnostic" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist,
   { desc = "Open diagnostic in location list" })
+vim.keymap.set("n", "<leader>dq", vim.diagnostic.setqflist,
+  { desc = "Send all diagnostics to quickfix" })
+vim.keymap.set("n", "<leader>dt", function()
+  local enabled = vim.diagnostic.config().virtual_text
+  vim.diagnostic.config({ virtual_text = not enabled })
+end, { desc = "Toggle diagnostic virtual text" })
+vim.keymap.set("n", "<leader>de", function()
+  vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
+end, { desc = "Go to next error" })
+vim.keymap.set("n", "<leader>dE", function()
+  vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR })
+end, { desc = "Go to previous error" })
 
 -- ========================
 -- Global LSP keymaps
