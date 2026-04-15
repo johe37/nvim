@@ -26,3 +26,11 @@ vim.api.nvim_create_autocmd("TextYankPost", {
     vim.highlight.on_yank({ timeout = 200 })
   end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+  desc = "Replace NvimTree's default statusline (which shows the buffer name like 'NvimTree_1')",
+  pattern = "NvimTree",
+  callback = function()
+    vim.opt_local.statusline = " File Explorer"
+  end,
+})
