@@ -1,4 +1,3 @@
-local lspconfig = require("lspconfig")
 local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
 local cmp_lsp = require("cmp_nvim_lsp")
@@ -10,10 +9,12 @@ local capabilities = cmp_lsp.default_capabilities()
 -- ========================
 vim.keymap.set("n", "<leader>dc", vim.diagnostic.open_float,
   { desc = "Show diagnostic for current line" })
-vim.keymap.set("n", "dp", vim.diagnostic.goto_prev,
-  { desc = "Go to previous diagnostic" })
-vim.keymap.set("n", "dn", vim.diagnostic.goto_next,
-  { desc = "Go to next diagnostic" })
+vim.keymap.set("n", "dp", function()
+  vim.diagnostic.jump({ count = -1, float = true })
+end, { desc = "Go to previous diagnostic" })
+vim.keymap.set("n", "dn", function()
+  vim.diagnostic.jump({ count = 1, float = true })
+end, { desc = "Go to next diagnostic" })
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist,
   { desc = "Open diagnostic in location list" })
 vim.keymap.set("n", "<leader>dq", vim.diagnostic.setqflist,
@@ -23,10 +24,10 @@ vim.keymap.set("n", "<leader>dt", function()
   vim.diagnostic.config({ virtual_text = not enabled })
 end, { desc = "Toggle diagnostic virtual text" })
 vim.keymap.set("n", "<leader>de", function()
-  vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR })
+  vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR, float = true })
 end, { desc = "Go to next error" })
 vim.keymap.set("n", "<leader>dE", function()
-  vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR })
+  vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR, float = true })
 end, { desc = "Go to previous error" })
 
 -- ========================
@@ -53,44 +54,37 @@ end
 require("fidget").setup({})
 mason.setup()
 
--- Setup LSPs via mason-lspconfig
+-- Install the LSP server binaries via Mason. Configuration and enablement
+-- below uses Neovim's native vim.lsp.config / vim.lsp.enable APIs.
+local servers = { "ansiblels", "jsonls", "pyright", "ts_ls" }
+
 mason_lspconfig.setup({
-  ensure_installed = {
-    "ansiblels",
-    "jsonls",
-    "pyright",
-    "ts_ls"
-  },
-  handlers = {
-    function(server_name)
-      lspconfig[server_name].setup({
-        capabilities = capabilities,
-        on_attach = on_attach,
-      })
-    end,
-    pyright = function()
-      local venv = os.getenv("VIRTUAL_ENV")
-      local python_path = venv and (venv .. "/bin/python") or vim.fn.exepath("python")
-      lspconfig.pyright.setup({
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = {
-          python = {
-            pythonPath = python_path,
-          },
-        },
-      })
-    end,
-    ts_ls = function()
-      lspconfig.ts_ls.setup({
-        capabilities = capabilities,
-        on_attach = on_attach,
-        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "javascript.ejs" },
-        settings = {
-          javascript = { suggest = { autoImports = true } },
-          typescript = { suggest = { autoImports = true } },
-        },
-      })
-    end,
+  ensure_installed = servers,
+})
+
+-- Defaults applied to every LSP server
+vim.lsp.config("*", {
+  capabilities = capabilities,
+  on_attach = on_attach,
+})
+
+-- Per-server overrides
+local venv = os.getenv("VIRTUAL_ENV")
+local python_path = venv and (venv .. "/bin/python") or vim.fn.exepath("python")
+vim.lsp.config("pyright", {
+  settings = {
+    python = {
+      pythonPath = python_path,
+    },
   },
 })
+
+vim.lsp.config("ts_ls", {
+  filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "javascript.ejs" },
+  settings = {
+    javascript = { suggest = { autoImports = true } },
+    typescript = { suggest = { autoImports = true } },
+  },
+})
+
+vim.lsp.enable(servers)
