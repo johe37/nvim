@@ -20,15 +20,27 @@ return {
       { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "Telescope Find Buffers" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "Telescope Find Help" },
       { "<leader>fc", function()
-          require("telescope.builtin").find_files({ cwd = vim.fn.expand("%:p:h") })
+          local dir = vim.b.netrw_curdir or vim.fn.expand("%:p:h")
+          require("telescope.builtin").find_files({ cwd = dir, prompt_title = "Find Files in " .. dir })
         end, desc = "Find Files in Current Dir" },
+      { "<leader>fg", "<cmd>Telescope git_files<cr>", desc = "Find Git Tracked Files" },
 
       -- grep
       { "<leader>sg", "<cmd>Telescope live_grep<cr>",  desc = "Telescope Live Grep" },
       { "<leader>sd", "<cmd>LiveGrepInDir<cr>", desc = "Telescope Live Grep in Directory" },
       { "<leader>sc", function()
-          require("telescope.builtin").live_grep({ cwd = vim.fn.expand("%:p:h") })
+          local dir = vim.b.netrw_curdir or vim.fn.expand("%:p:h")
+          require("telescope.builtin").live_grep({ cwd = dir, prompt_title = "Live Grep in " .. dir })
         end, desc = "Live Grep in Current Dir" },
+      { "<leader>sG", function()
+          require("telescope.builtin").live_grep({
+            prompt_title = "Live Grep (Respect Gitignore)",
+            vimgrep_arguments = {
+              "rg", "--color=never", "--no-heading", "--with-filename",
+              "--line-number", "--column", "--smart-case",
+            },
+          })
+        end, desc = "Live Grep (Respect Gitignore)" },
 
       -- etc.
       { "<leader>fr", "<cmd>Telescope resume<cr>", desc = "Telescope Resume Last Picker" },
