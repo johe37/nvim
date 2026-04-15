@@ -1,6 +1,10 @@
 -- Set leader key
 vim.g.mapleader = " "  -- Use space as leader key
 
+-- Make Mason-installed binaries (e.g. tree-sitter CLI) discoverable to
+-- plugins that shell out, without polluting the user's shell PATH.
+vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin:" .. vim.env.PATH
+
 -- UI Settings
 vim.opt.guicursor = ""         -- Use block (fat) cursor
 vim.opt.nu = true              -- Show line numbers
