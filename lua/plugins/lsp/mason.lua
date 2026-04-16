@@ -86,17 +86,44 @@ vim.lsp.config("ts_ls", {
   },
 })
 
--- Set filetype for GitLab CI files
+-- Set filetype for GitLab CI and Ansible files
 vim.filetype.add({
   pattern = {
-    ["%.gitlab%-ci%.ya?ml"] = "yaml.gitlab",
-    [".gitlab/.*%.ya?ml"] = "yaml.gitlab",
+    ["%.gitlab%-ci%.ya?ml$"] = "yaml.gitlab",
+    [".gitlab/.*%.ya?ml$"] = "yaml.gitlab",
   },
+})
+
+-- Detect Ansible files and set filetype
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = "*.yml,*.yaml",
+  callback = function(event)
+    local fname = vim.api.nvim_buf_get_name(event.buf)
+    local is_ansible = fname:match("ansible/") or fname:match("playbooks/") or
+                       fname:match("roles/") or fname:match("group_vars/")
+    if is_ansible then
+      vim.bo[event.buf].filetype = "yaml.ansible"
+    end
+  end,
 })
 
 -- Configure yaml-language-server for regular YAML files
 vim.lsp.config("yamlls", {
   filetypes = { "yaml" },
+})
+
+-- Configure ansiblels for Ansible files
+vim.lsp.config("ansiblels", {
+  filetypes = { "yaml.ansible" },
+  settings = {
+    ansible = {
+      validation = {
+        lint = {
+          enabled = false,
+        },
+      },
+    },
+  },
 })
 
 -- Configure gitlab-ci-ls for GitLab CI files (uses custom yaml.gitlab filetype)
@@ -108,9 +135,9 @@ vim.lsp.config("gitlab_ci_ls", {
   },
 })
 
--- Detach yamlls from GitLab CI files, keep gitlab-ci-ls only
+-- Detach yamlls from specialized YAML files (GitLab CI and Ansible)
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "yaml.gitlab",
+  pattern = { "yaml.gitlab", "yaml.ansible" },
   callback = function(event)
     local yamlls_clients = vim.lsp.get_clients({ bufnr = event.buf, name = "yamlls" })
     for _, client in ipairs(yamlls_clients) do
