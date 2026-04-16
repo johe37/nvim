@@ -47,9 +47,15 @@ end
 require("fidget").setup({})
 mason.setup()
 
--- Install the LSP server binaries via Mason. Configuration and enablement
--- below uses Neovim's native vim.lsp.config / vim.lsp.enable APIs.
-local servers = { "ansiblels", "jsonls", "pyright", "ts_ls" }
+-- Install the LSP server binaries via Mason
+local servers = { 
+  "pyright",
+  "yamlls",
+  "ansiblels",
+  "gitlab_ci_ls",
+  "jsonls",
+  "ts_ls"
+}
 
 mason_lspconfig.setup({
   ensure_installed = servers,
@@ -80,4 +86,38 @@ vim.lsp.config("ts_ls", {
   },
 })
 
+-- Set filetype for GitLab CI files
+vim.filetype.add({
+  pattern = {
+    ["%.gitlab%-ci%.ya?ml"] = "yaml.gitlab",
+    [".gitlab/.*%.ya?ml"] = "yaml.gitlab",
+  },
+})
+
+-- Configure yaml-language-server for regular YAML files
+vim.lsp.config("yamlls", {
+  filetypes = { "yaml" },
+})
+
+-- Configure gitlab-ci-ls for GitLab CI files (uses custom yaml.gitlab filetype)
+vim.lsp.config("gitlab_ci_ls", {
+  filetypes = { "yaml.gitlab" },
+  init_options = {
+    cache = vim.fn.stdpath("cache") .. "/gitlab-ci-ls",
+    log_path = vim.fn.stdpath("cache") .. "/gitlab-ci-ls/log.txt",
+  },
+})
+
+-- Detach yamlls from GitLab CI files, keep gitlab-ci-ls only
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "yaml.gitlab",
+  callback = function(event)
+    local yamlls_clients = vim.lsp.get_clients({ bufnr = event.buf, name = "yamlls" })
+    for _, client in ipairs(yamlls_clients) do
+      vim.lsp.stop_client(client)
+    end
+  end,
+})
+
 vim.lsp.enable(servers)
+
