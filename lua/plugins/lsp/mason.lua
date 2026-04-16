@@ -30,24 +30,17 @@ vim.keymap.set("n", "<leader>dE", function()
   vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR, float = true })
 end, { desc = "Go to previous error" })
 
--- ========================
--- Global LSP keymaps
--- ========================
-vim.keymap.set("n", "K", vim.lsp.buf.hover,
-  { desc = "Show hover documentation" })
-vim.keymap.set("n", "gd", vim.lsp.buf.definition,
-  { desc = "Go to definition" })
-vim.keymap.set("n", "gr", vim.lsp.buf.references,
-  { desc = "List references" })
-vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename,
-  { desc = "Rename symbol" })
-vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action,
-  { desc = "Code actions" })
-vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help,
-  { desc = "Signature help" })
-
--- on_attach callback (currently just a placeholder)
 local on_attach = function(_, bufnr)
+  local function buf_set_keymap(mode, lhs, rhs, desc)
+    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
+  end
+
+  buf_set_keymap("n", "K", vim.lsp.buf.hover, "Show hover documentation")
+  buf_set_keymap("n", "gd", vim.lsp.buf.definition, "Go to definition")
+  buf_set_keymap("n", "gr", vim.lsp.buf.references, "List references")
+  buf_set_keymap("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol")
+  buf_set_keymap("n", "<leader>ca", vim.lsp.buf.code_action, "Code actions")
+  buf_set_keymap("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
 end
 
 -- Initialize UI and Mason
