@@ -2,8 +2,9 @@ return {
   {
     "nvim-treesitter/nvim-treesitter-context",
     dependencies = { "nvim-treesitter/nvim-treesitter" },
+    main = "treesitter-context",
     config = function()
-      require("nvim-treesitter-context").setup({
+      require("treesitter-context").setup({
         enable = true,           -- Enable this plugin
         max_lines = 3,           -- How many lines the context window should show
         min_window_height = 0,   -- Minimum editor height to enable context
