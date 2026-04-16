@@ -63,7 +63,7 @@ vim.lsp.config("*", {
 
 -- Per-server overrides
 local venv = os.getenv("VIRTUAL_ENV")
-local python_path = venv and (venv .. "/bin/python") or vim.fn.exepath("python")
+local python_path = venv and (venv .. "/bin/python") or (vim.fn.exepath("python") ~= "" and vim.fn.exepath("python") or "python")
 vim.lsp.config("pyright", {
   settings = {
     python = {
