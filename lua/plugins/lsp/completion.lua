@@ -24,7 +24,8 @@ cmp.setup({
   enabled = function()
     -- Disable completion for JSON files to avoid lag on minified files
     local context = require("cmp.config.context")
-    if vim.api.nvim_buf_get_option(0, "filetype") == "json" then
+    local filetype = vim.api.nvim_get_option_value("filetype", { buf = 0 })
+    if filetype == "json" then
       return false
     end
     return not context.in_treesitter_capture("comment") and not context.in_syntax_group("Comment")
