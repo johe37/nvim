@@ -11,7 +11,7 @@ vim.keymap.set("n", "<leader>Y", "\"+Y", { desc = "Yank entire line to system cl
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww goto<CR>", { desc = "Open tmux window and run `goto`" })
 
 -- Buffer navigation
-vim.keymap.set("n", "<Tab>", ":bnext<CR>", { noremap = true, silent = true, desc = "Next buffer" })
-vim.keymap.set("n", "<S-Tab>", ":bprevious<CR>", { noremap = true, silent = true, desc = "Previous buffer" })
+vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { noremap = true, silent = true, desc = "Next buffer" })
+vim.keymap.set("n", "<leader>bp", ":bprevious<CR>", { noremap = true, silent = true, desc = "Previous buffer" })
 vim.keymap.set("n", "<leader>bc", "<cmd>bdelete<CR>", { desc = "Close buffer" })
 vim.keymap.set("n", "<leader>bx", "<cmd>BufferLineCloseOthers<CR>", { desc = "Close other buffers" })
