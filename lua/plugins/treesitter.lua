@@ -1,11 +1,10 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    -- The new (main-branch) API does not support lazy-loading.
     lazy = false,
     build = ":TSUpdate",
-    config = function()
-      local langs = {
+    opts = {
+      ensure_installed = {
         "bash",
         "lua",
         "vim",
@@ -20,11 +19,7 @@ return {
         "markdown",
         "c",
         "diff",
-      }
-
-      -- Asynchronously install/update parsers for the languages above.
-      -- No-op if already installed.
-      require("nvim-treesitter").install(langs)
-    end,
+      },
+    },
   },
 }
