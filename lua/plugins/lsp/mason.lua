@@ -20,7 +20,7 @@ vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist,
 vim.keymap.set("n", "<leader>dq", vim.diagnostic.setqflist,
   { desc = "Send all diagnostics to quickfix" })
 vim.keymap.set("n", "<leader>dt", function()
-  local enabled = vim.diagnostic.config().virtual_text
+  local enabled = vim.diagnostic.config().virtual_text == true
   vim.diagnostic.config({ virtual_text = not enabled })
 end, { desc = "Toggle diagnostic virtual text" })
 vim.keymap.set("n", "<leader>de", function()
