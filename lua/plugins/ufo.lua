@@ -19,6 +19,9 @@ return {
       -- Setup ufo with Treesitter + fallback to indent
       require("ufo").setup({
         provider_selector = function(bufnr, filetype, buftype)
+          if vim.b[bufnr].large_file then
+            return ""
+          end
           return { "treesitter", "indent" }
         end,
       })

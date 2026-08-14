@@ -1,3 +1,9 @@
+-- Unused remote-plugin hosts (Neovim probes for these on startup)
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_node_provider = 0
+
 -- Set leader key
 vim.g.mapleader = " "  -- Use space as leader key
 

@@ -13,4 +13,18 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Load plugins from lua/plugins/
-require("lazy").setup("plugins")
+require("lazy").setup("plugins", {
+  performance = {
+    rtp = {
+      -- Keep netrw: <leader>e uses :Ex
+      disabled_plugins = {
+        "gzip",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+        "rplugin",
+      },
+    },
+  },
+})

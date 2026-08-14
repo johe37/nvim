@@ -1,6 +1,7 @@
 return {
   {
     'lewis6991/gitsigns.nvim',
+    event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       require('gitsigns').setup {
         current_line_blame = true,
@@ -9,6 +10,9 @@ return {
           virt_text_pos = 'eol', -- 'eol' | 'overlay' | 'right_align'
         },
         on_attach = function(bufnr)
+          if vim.b[bufnr].large_file then
+            return false
+          end
           local gs = require('gitsigns')
           local function map(mode, l, r, desc)
             vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })

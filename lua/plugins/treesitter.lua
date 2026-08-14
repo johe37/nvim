@@ -3,8 +3,10 @@ return {
     "nvim-treesitter/nvim-treesitter",
     lazy = false,
     build = ":TSUpdate",
-    opts = {
-      ensure_installed = {
+    config = function()
+      -- main-branch setup() only accepts install_dir; parsers are installed separately.
+      -- install() is async and a no-op when the parser is already present.
+      require("nvim-treesitter").install({
         "bash",
         "lua",
         "vim",
@@ -19,7 +21,7 @@ return {
         "markdown",
         "c",
         "diff",
-      },
-    },
+      })
+    end,
   },
 }

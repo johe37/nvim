@@ -1,27 +1,15 @@
 return {
   {
     'nvim-pack/nvim-spectre',
-    dependencies = { 'nvim-lua/plenary.nvim' }, -- Required dependency
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    keys = {
+      { '<leader>sr', function() require('spectre').open() end, desc = 'Search and Replace in Project' },
+      { '<leader>sw', function() require('spectre').open_visual({ select_word = true }) end, desc = 'Search current word' },
+      { '<leader>sw', function() require('spectre').open_visual() end, mode = 'v', desc = 'Search selected text' },
+      { '<leader>sp', function() require('spectre').open_file_search({ select_word = true }) end, desc = 'Search in current file' },
+    },
     config = function()
-      local spectre = require('spectre')
-      spectre.setup()
-
-      -- Keymaps
-      vim.keymap.set('n', '<leader>sr', function()
-        spectre.open()
-      end, { desc = 'Search and Replace in Project' })
-
-      vim.keymap.set('n', '<leader>sw', function()
-        spectre.open_visual({ select_word = true })
-      end, { desc = 'Search current word' })
-
-      vim.keymap.set('v', '<leader>sw', function()
-        spectre.open_visual()
-      end, { desc = 'Search selected text' })
-
-      vim.keymap.set('n', '<leader>sp', function()
-        spectre.open_file_search({ select_word = true })
-      end, { desc = 'Search in current file' })
-    end
+      require('spectre').setup()
+    end,
   }
 }
