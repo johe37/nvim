@@ -3,7 +3,9 @@ vim.g.mapleader = " "  -- Use space as leader key
 
 -- UI Settings
 vim.opt.guicursor = ""         -- Use block (fat) cursor
-vim.opt.nu = true              -- Show line numbers
+vim.opt.number = true          -- Show line numbers
+vim.opt.relativenumber = false -- Don't mix in a relative-number column
+vim.opt.signcolumn = "yes"     -- Reserve one gutter for git/LSP signs
 vim.opt.wrap = false           -- Disable line wrapping
 vim.opt.termguicolors = true   -- Enable true color support
 vim.opt.scrolloff = 8          -- Keep 8 lines of context when scrolling

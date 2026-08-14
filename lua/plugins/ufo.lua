@@ -4,8 +4,7 @@ return {
     dependencies = { "kevinhwang91/promise-async" },
     event = "BufReadPost",
     config = function()
-      -- Set fold options
-      vim.o.foldcolumn = "1"       -- Show fold column
+      vim.o.foldcolumn = "0"       -- Hidden; fold-depth digits look like extra line numbers
       vim.o.foldlevel = 99         -- Start with all folds open
       vim.o.foldlevelstart = 99
       vim.o.foldenable = true      -- Enable folding
