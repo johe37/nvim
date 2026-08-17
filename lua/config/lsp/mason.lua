@@ -57,8 +57,9 @@ local servers = {
   "ts_ls"
 }
 
+-- GitHub Actions verifies the Lua config, not that Mason can fetch servers.
 mason_lspconfig.setup({
-  ensure_installed = servers,
+  ensure_installed = vim.env.GITHUB_ACTIONS and {} or servers,
 })
 
 -- Defaults applied to every LSP server
