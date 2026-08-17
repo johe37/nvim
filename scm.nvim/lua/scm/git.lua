@@ -212,6 +212,201 @@ function M.commit(root, message, amend)
   return true
 end
 
+-- Field/record separators for the custom `--format` strings below. Using bytes
+-- that cannot appear in a path or a subject line keeps parsing unambiguous.
+local FS, RS = "\31", "\30"
+-- The record separator leads the format so that the `--name-status` output git
+-- appends for a path-filtered log lands inside the record it belongs to.
+local LOG_FORMAT = "%x1e" .. table.concat({ "%H", "%h", "%an", "%ar", "%as", "%P", "%s" }, "%x1f")
+
+--- One record: the formatted fields, optionally followed by NUL separated
+--- `--name-status` output for the path we are following.
+local function parse_commit_record(record)
+  local nul = record:find("\0", 1, true)
+  -- git ends each commit's output with a newline; it belongs to no field.
+  local head = (nul and record:sub(1, nul - 1) or record):gsub("[\r\n]+$", "")
+  local f = vim.split(head, FS, { plain = true })
+  if not f[1] or f[1] == "" then
+    return nil
+  end
+  local commit = {
+    sha = f[1],
+    short = f[2],
+    author = f[3],
+    rel_date = f[4],
+    date = f[5],
+    parents = vim.split(f[6] or "", " ", { plain = true, trimempty = true }),
+    subject = f[7] or "",
+  }
+
+  if nul then
+    local fields = {}
+    for _, field in ipairs(vim.split(record:sub(nul + 1), "\0", { plain = true })) do
+      field = field:gsub("^\n", "")
+      if field ~= "" then
+        fields[#fields + 1] = field
+      end
+    end
+    local code = (fields[1] or ""):sub(1, 1)
+    -- The file's name *as of this commit*, which is what a rename changes.
+    local file
+    if code == "R" or code == "C" then
+      file = { code = code, orig = fields[2], path = fields[3] }
+    elseif code ~= "" then
+      file = { code = code, path = fields[2] }
+    end
+    if file and file.path then
+      file.kind = "commit_file"
+      file.label = STATUS_LABEL[file.code] or file.code
+      file.sha = commit.sha
+      file.parent = commit.parents[1]
+      commit.file = file
+    end
+  end
+  return commit
+end
+
+--- Commit history, newest first. With `path`, only commits touching that file,
+--- each carrying the name the file had at that point (`commit.file`).
+---@param opts? { limit?: integer, rev?: string, path?: string }
+---@return table[]
+function M.log(root, opts)
+  opts = opts or {}
+  local args = { "log", "--no-color", "--format=" .. LOG_FORMAT }
+  if opts.limit then
+    args[#args + 1] = "-n" .. opts.limit
+  end
+  if opts.rev then
+    args[#args + 1] = opts.rev
+  end
+  if opts.path then
+    -- --follow keeps the history going across renames, like GitLens does.
+    args[#args + 1] = "--follow"
+    args[#args + 1] = "--name-status"
+    args[#args + 1] = "-z"
+    args[#args + 1] = "--find-renames"
+    args[#args + 1] = "--"
+    args[#args + 1] = opts.path
+  end
+  local res = M.run(args, { cwd = root })
+  if res.code ~= 0 then
+    return {}
+  end
+  local commits = {}
+  for _, record in ipairs(vim.split(res.stdout, RS, { plain = true })) do
+    local commit = parse_commit_record(record)
+    if commit then
+      commits[#commits + 1] = commit
+    end
+  end
+  return commits
+end
+
+--- Everything needed to describe one commit, including its message body.
+---@return table|nil
+function M.commit_info(root, rev)
+  local format = table.concat({ "%H", "%h", "%an", "%ae", "%ar", "%ad", "%P", "%s", "%b" }, "%x1f")
+  local res = M.run({ "show", "--no-patch", "--format=" .. format, "--date=iso", rev }, { cwd = root })
+  if res.code ~= 0 then
+    return nil, vim.trim(res.stderr)
+  end
+  local f = vim.split(res.stdout, FS, { plain = true })
+  if not f[1] or f[1] == "" then
+    return nil, "no such revision: " .. rev
+  end
+  return {
+    sha = f[1],
+    short = f[2],
+    author = f[3],
+    email = f[4],
+    rel_date = f[5],
+    date = vim.trim(f[6] or ""),
+    parents = vim.split(f[7] or "", " ", { plain = true, trimempty = true }),
+    subject = f[8] or "",
+    body = vim.trim((f[9] or ""):gsub("\n+$", "")),
+  }
+end
+
+--- Files touched by a commit, as status entries the panel can render.
+--- Merge commits are compared against their first parent, which is what you
+--- almost always want to look at.
+---@return table[]
+function M.commit_files(root, commit)
+  local parent = commit.parents[1]
+  local args = { "diff-tree", "-r", "-z", "--name-status", "--no-commit-id", "--find-renames" }
+  if parent then
+    args[#args + 1] = parent
+    args[#args + 1] = commit.sha
+  else
+    args[#args + 1] = "--root"
+    args[#args + 1] = commit.sha
+  end
+  local res = M.run(args, { cwd = root })
+  if res.code ~= 0 then
+    return {}
+  end
+
+  local files = {}
+  local fields = vim.split(res.stdout, "\0", { plain = true })
+  local i = 1
+  while fields[i] and fields[i] ~= "" do
+    local code = fields[i]:sub(1, 1)
+    local path, orig = fields[i + 1], nil
+    if code == "R" or code == "C" then
+      orig, path = fields[i + 1], fields[i + 2]
+      i = i + 3
+    else
+      i = i + 2
+    end
+    if path then
+      files[#files + 1] = {
+        path = path,
+        orig = orig,
+        code = code,
+        label = STATUS_LABEL[code] or code,
+        kind = "commit_file",
+        sha = commit.sha,
+        parent = parent,
+      }
+    end
+  end
+  table.sort(files, function(a, b)
+    return a.path < b.path
+  end)
+  return files
+end
+
+--- The whole commit as a unified patch.
+---@return string[]
+function M.commit_patch(root, rev)
+  local res = M.run({ "show", "--no-color", "--stat", "--patch", "--find-renames", rev }, { cwd = root })
+  if res.code ~= 0 then
+    return { "scm: " .. vim.trim(res.stderr) }
+  end
+  local lines = vim.split(res.stdout, "\n", { plain = true })
+  if lines[#lines] == "" then
+    table.remove(lines)
+  end
+  return lines
+end
+
+--- Commit that last touched `lnum` in `path`, or nil if the line is not committed.
+---@return string|nil sha, string|nil err
+function M.blame_line(root, path, lnum)
+  local res = M.run({ "blame", "--porcelain", "-L", lnum .. "," .. lnum, "--", path }, { cwd = root })
+  if res.code ~= 0 then
+    return nil, vim.trim(res.stderr)
+  end
+  local sha = res.stdout:match("^(%x+)")
+  if not sha then
+    return nil, "no blame information"
+  end
+  if sha:match("^0+$") then
+    return nil, "line is not committed yet"
+  end
+  return sha
+end
+
 function M.last_message(root)
   local res = M.run({ "log", "-1", "--pretty=%B" }, { cwd = root })
   if res.code ~= 0 then

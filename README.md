@@ -10,7 +10,7 @@ A minimal, well-organized Neovim configuration with LSP, completion, and modern 
 - **Search & Replace** — [Spectre](https://github.com/nvim-pack/nvim-spectre)
 - **Tree-sitter Integration** — Syntax highlighting, folding, and context awareness
 - **Git Integration** — [Gitsigns](https://github.com/lewis6991/gitsigns.nvim)
-- **Source Control** — [scm.nvim](scm.nvim/README.md), a local plugin: VS Code style change list (`<leader>gg`) with editable side-by-side diffs
+- **Source Control** — [scm.nvim](scm.nvim/README.md), a local plugin: VS Code style change list (`<leader>gg`) with editable side-by-side diffs, plus GitLens style history browsing (`<leader>gl`)
 - **Indent Guides** — [Indent Blankline](https://github.com/lukas-reineke/indent-blankline.nvim)
 
 ## Requirements
@@ -45,6 +45,8 @@ Common commands:
 - `<leader>ca` — Code actions
 - `<leader>gg` — Source control panel
 - `<leader>gd` — Side-by-side diff of the current file
+- `<leader>gl` — Commit history (`<leader>gL` for the current file)
+- `<leader>gB` — Inspect the commit behind the current line
 
 ## Project Structure
 

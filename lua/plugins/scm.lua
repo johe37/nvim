@@ -4,12 +4,27 @@ return {
   {
     "scm.nvim",
     dir = vim.fn.stdpath("config") .. "/scm.nvim",
-    cmd = { "Scm", "ScmOpen", "ScmClose", "ScmRefresh", "ScmDiff", "ScmDiffClose", "ScmCommit" },
+    cmd = {
+      "Scm",
+      "ScmOpen",
+      "ScmClose",
+      "ScmRefresh",
+      "ScmDiff",
+      "ScmDiffClose",
+      "ScmCommit",
+      "ScmLog",
+      "ScmFileLog",
+      "ScmShow",
+      "ScmBlame",
+    },
     keys = {
       { "<leader>gg", "<cmd>Scm<cr>", desc = "Source control panel" },
       { "<leader>gd", "<cmd>ScmDiff<cr>", desc = "Diff current file (side by side)" },
       { "<leader>gD", "<cmd>ScmDiff HEAD<cr>", desc = "Diff current file vs HEAD" },
       { "<leader>gc", "<cmd>ScmCommit<cr>", desc = "Commit staged changes" },
+      { "<leader>gl", "<cmd>ScmLog<cr>", desc = "Commit history" },
+      { "<leader>gL", "<cmd>ScmFileLog<cr>", desc = "History of current file" },
+      { "<leader>gB", "<cmd>ScmBlame<cr>", desc = "Inspect commit behind this line" },
     },
     opts = {
       width = 42,

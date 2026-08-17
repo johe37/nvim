@@ -6,10 +6,12 @@ return {
   panel = {
     buf = nil, ---@type integer|nil
     win = nil, ---@type integer|nil
-    entries = {}, ---@type table<integer, table> line number -> status entry
+    entries = {}, ---@type table<integer, table> line number -> item under that line
     sections = {}, ---@type table<integer, string> line number -> section key
     collapsed = {}, ---@type table<string, boolean>
     status = nil,
+    view = nil, ---@type table|nil the view the sidebar currently shows
+    stack = {}, ---@type table[] views to walk back through with <BS>
   },
 
   diff = {

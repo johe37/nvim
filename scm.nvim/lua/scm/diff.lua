@@ -48,6 +48,18 @@ local function resolve(entry)
       { file = path, label = path }
   end
 
+  -- Two explicit blobs: a file as it looked in a commit and in its parent.
+  if entry.kind == "commit_file" then
+    local left = entry.left_spec
+        and { spec = entry.left_spec, label = entry.left_label, name = entry.left_spec }
+      or { empty = true, label = entry.left_label, name = "empty/" .. path }
+    local right = entry.right_spec
+        and { spec = entry.right_spec, label = entry.right_label, name = entry.right_spec }
+      or { empty = true, label = entry.right_label, name = "gone/" .. path }
+    right.readonly = true
+    return left, right
+  end
+
   if entry.kind == "staged" then
     local left = entry.code == "A" and new_side() or head_side()
     local right = index_side()

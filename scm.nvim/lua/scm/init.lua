@@ -3,6 +3,10 @@
 --   :Scm            toggle the panel
 --   :ScmDiff        diff the current file side by side
 --   :ScmCommit      write a commit message for what is staged
+--   :ScmLog         browse commits; <CR> inspects one, its files diff on <CR>
+--   :ScmFileLog     history of the current file
+--   :ScmShow <rev>  inspect one commit
+--   :ScmBlame       inspect the commit behind the current line
 local config = require("scm.config")
 
 local M = {}
@@ -12,6 +16,7 @@ local HIGHLIGHTS = {
   ScmSection = { link = "Statement" },
   ScmBranch = { link = "Special" },
   ScmDim = { link = "Comment" },
+  ScmSha = { link = "Identifier" },
   ScmPath = { link = "Normal" },
   ScmAdded = { link = "Added" },
   ScmModified = { link = "Changed" },
@@ -149,6 +154,29 @@ end
 ---@param opts? { amend?: boolean }
 function M.commit(opts)
   require("scm.commit").open(opts)
+end
+
+--- Commit history in the sidebar.
+---@param opts? { path?: string, rev?: string }
+function M.log(opts)
+  require("scm.panel").open()
+  require("scm.log").open_log(opts)
+end
+
+--- History of the file in the current buffer.
+function M.file_history()
+  require("scm.log").file_history()
+end
+
+--- Inspect one commit: metadata, message, and the files it touched.
+function M.show(rev)
+  require("scm.panel").open()
+  require("scm.log").open_commit(rev or "HEAD")
+end
+
+--- Inspect the commit that last touched the current line.
+function M.blame_line()
+  require("scm.log").blame_current_line()
 end
 
 return M

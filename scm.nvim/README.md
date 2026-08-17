@@ -4,6 +4,9 @@ A VS Code style source control view for Neovim: a sidebar listing your current
 changes, and a side-by-side diff where the left window is the old version and the
 right window is the real file — editable, savable, and re-diffed as you type.
 
+The same sidebar also browses history, GitLens style: commit lists, one commit's
+metadata and files, and a jump from any line to the commit that wrote it.
+
 No dependencies beyond `git` and Neovim ≥ 0.10.
 
 ```
@@ -32,8 +35,23 @@ No dependencies beyond `git` and Neovim ≥ 0.10.
 | `:ScmDiff [rev]` | Diff the current file side by side (against `rev` if given) |
 | `:ScmDiffClose` | Close the diff and leave diff mode |
 | `:ScmCommit [amend]` | Open a commit message buffer for the staged changes |
+| `:ScmLog [rev]` | Browse the commit history in the panel |
+| `:ScmFileLog` | Browse the history of the current file |
+| `:ScmShow [rev]` | Inspect a commit and the files it touched (default `HEAD`) |
+| `:ScmBlame` | Inspect the commit that last touched the current line |
+
+## The three views
+
+The sidebar hosts one view at a time and `<BS>` walks back through the ones you
+came from:
+
+- **status** — the working tree (this is what `:Scm` opens)
+- **log** — a commit list, repo-wide (`L`) or for a single file (`l`)
+- **commit** — one commit: sha, author, date, full message, and its files
 
 ## Panel mappings
+
+Working tree:
 
 | Key | Action |
 | --- | --- |
@@ -44,7 +62,26 @@ No dependencies beyond `git` and Neovim ≥ 0.10.
 | `X` | Discard changes (deletes the file if it is untracked) |
 | `cc` / `ca` | Commit / amend the last commit |
 | `<Tab>` | Collapse or expand the section under the cursor |
-| `J` / `K` | Jump to the next / previous file |
+
+History:
+
+| Key | Action |
+| --- | --- |
+| `L` | Commit history for the repository |
+| `l` | History of the file under the cursor |
+| `<CR>` | On a commit: inspect it — in a file's history: diff that file at that commit |
+| | On a commit's file: diff it against the parent commit |
+| `i` | Inspect the commit under the cursor |
+| `D` | Open the commit as one unified patch in the editor area |
+| `m` | Load another 50 commits |
+| `y` | Yank the commit sha |
+| `<BS>` | Back to the previous view |
+
+Anywhere:
+
+| Key | Action |
+| --- | --- |
+| `J` / `K` | Jump to the next / previous item |
 | `r` | Refresh |
 | `q` | Close the panel and any open diff |
 | `g?` | Show this list |
@@ -71,6 +108,14 @@ The panel mirrors what VS Code shows when you click an entry:
 - **Untracked** — an empty buffer on the left, the new file on the right.
 - **Merge Conflicts** — "ours" (`:2:`) on the left, the file with its conflict
   markers on the right, editable so you can resolve it in place.
+- **A commit's file** — the parent commit's version on the left, the commit's own
+  version on the right. Both read-only: history is not editable. A file added in
+  the commit gets an empty left side, a deleted one an empty right side, and a
+  renamed one is compared against its old path.
+
+A file's history follows renames (`git log --follow`), so a commit that renamed
+the file is annotated with the name it had before, and diffing it compares the
+right pair of paths.
 
 ## Setup
 
@@ -90,7 +135,7 @@ require("scm").setup({
 Highlight groups (all `default`-linked, so a colorscheme can override them):
 `ScmTitle`, `ScmSection`, `ScmBranch`, `ScmDim`, `ScmPath`, `ScmAdded`,
 `ScmModified`, `ScmDeleted`, `ScmRenamed`, `ScmConflict`, `ScmUntracked`,
-`ScmDiffOld`, `ScmDiffNew`.
+`ScmSha`, `ScmDiffOld`, `ScmDiffNew`.
 
 ## Layout
 
@@ -100,8 +145,9 @@ scm.nvim/
 │   ├── init.lua     -- setup, highlights, autocmds, public API
 │   ├── config.lua   -- options
 │   ├── state.lua    -- shared window/buffer state
-│   ├── git.lua      -- git CLI wrapper (status parsing, blobs, stage, commit)
-│   ├── panel.lua    -- the sidebar
+│   ├── git.lua      -- git CLI wrapper (status, log, blobs, stage, commit, blame)
+│   ├── panel.lua    -- the sidebar: window, views, keymaps
+│   ├── log.lua      -- the history views (commit list, commit details, blame)
 │   ├── diff.lua     -- the side-by-side view
 │   └── commit.lua   -- the commit message buffer
 └── plugin/scm.lua   -- user commands

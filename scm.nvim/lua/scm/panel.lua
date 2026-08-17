@@ -1,5 +1,8 @@
--- The source control panel: a sidebar listing changed files grouped into
--- Conflicts / Staged Changes / Changes / Untracked, like VS Code's SCM view.
+-- The sidebar. It hosts three views in one window, VS Code style:
+--   status  the working tree, grouped into Conflicts/Staged/Changes/Untracked
+--   log     a commit list, either repo-wide or for one file
+--   commit  one commit: metadata, message, and the files it touched
+-- `<BS>` walks back through the views you came from.
 local git = require("scm.git")
 local state = require("scm.state")
 local config = require("scm.config")
@@ -35,8 +38,13 @@ function M.is_open()
   return state.panel.win ~= nil and vim.api.nvim_win_is_valid(state.panel.win)
 end
 
---- Entry under the cursor, or nil on a header/blank line.
-function M.current_entry()
+function M.view()
+  return state.panel.view or { kind = "status" }
+end
+
+--- Item under the cursor: a working tree file, a commit, a commit's file, or one
+--- of the inline actions. Nil on a header or blank line.
+function M.current_item()
   if not M.is_open() then
     return nil
   end
@@ -44,45 +52,38 @@ function M.current_entry()
   return state.panel.entries[lnum]
 end
 
+--- Kept for callers that only care about working tree files.
+function M.current_entry()
+  local item = M.current_item()
+  return item and item.type == "file" and item.entry or nil
+end
+
 local function current_section()
   if not M.is_open() then
     return nil
   end
   local lnum = vim.api.nvim_win_get_cursor(state.panel.win)[1]
-  return state.panel.sections[lnum] or (state.panel.entries[lnum] or {}).kind
+  local item = state.panel.entries[lnum]
+  return state.panel.sections[lnum] or (item and item.entry and item.entry.kind) or nil
 end
 
----@param buf integer
-local function render(buf, status)
-  local lines, marks, entries, sections = {}, {}, {}, {}
+---------------------------------------------------------------------------
+-- Rendering
+---------------------------------------------------------------------------
 
-  local function add(text, hls, meta)
-    lines[#lines + 1] = text
-    local lnum = #lines
-    for _, hl in ipairs(hls or {}) do
-      marks[#marks + 1] = { lnum - 1, hl[1], hl[2], hl[3] }
-    end
-    if meta then
-      if meta.entry then
-        entries[lnum] = meta.entry
-      end
-      if meta.section then
-        sections[lnum] = meta.section
-      end
-    end
-  end
+local function render_status(add, _, width)
+  local status = git.status(state.root)
+  state.panel.status = status
 
-  local name = vim.fs.basename(state.root or "")
   add(" Source Control", { { 0, -1, "ScmTitle" } })
 
-  local head = git.branch(state.root)
+  local branch_line = " " .. git.branch(state.root)
   local upstream = git.upstream(state.root)
-  local branch_line = " " .. head
   if upstream and (upstream.ahead > 0 or upstream.behind > 0) then
     branch_line = branch_line .. string.format("  ^%d v%d", upstream.ahead, upstream.behind)
   end
   add(branch_line, { { 0, -1, "ScmBranch" } })
-  add(" " .. name, { { 0, -1, "ScmDim" } })
+  add(" " .. vim.fs.basename(state.root or ""), { { 0, -1, "ScmDim" } })
 
   local total = 0
   for _, section in ipairs(SECTIONS) do
@@ -91,9 +92,8 @@ local function render(buf, status)
     if #list > 0 then
       add("")
       local collapsed = state.panel.collapsed[section.key]
-      local marker = collapsed and ">" or "v"
       add(
-        string.format(" %s %s (%d)", marker, section.title, #list),
+        string.format(" %s %s (%d)", collapsed and ">" or "v", section.title, #list),
         { { 0, -1, "ScmSection" } },
         { section = section.key }
       )
@@ -112,19 +112,56 @@ local function render(buf, status)
             text = text .. "  " .. dir
             hls[#hls + 1] = { #prefix + #base, -1, "ScmDim" }
           end
-          add(text, hls, { entry = entry, section = section.key })
+          add(text, hls, {
+            item = { type = "file", entry = entry, key = entry.kind .. ":" .. entry.path },
+            section = section.key,
+          })
         end
       end
     end
   end
+  _ = width
 
   if total == 0 then
     add("")
     add("  No changes", { { 0, -1, "ScmDim" } })
   end
+end
+
+local function render(buf)
+  local view = M.view()
+  local width = M.is_open() and vim.api.nvim_win_get_width(state.panel.win) or config.width
+  local lines, marks, entries, sections = {}, {}, {}, {}
+
+  local function add(text, hls, meta)
+    -- A buffer line can never hold a newline; git output should not be able to
+    -- break the panel even if something upstream changes shape.
+    lines[#lines + 1] = text:gsub("[\r\n]", " ")
+    local lnum = #lines
+    for _, hl in ipairs(hls or {}) do
+      marks[#marks + 1] = { lnum - 1, hl[1], hl[2], hl[3] }
+    end
+    if meta then
+      if meta.item then
+        entries[lnum] = meta.item
+      end
+      if meta.section then
+        sections[lnum] = meta.section
+      end
+    end
+  end
+
+  if view.kind == "log" then
+    require("scm.log").render_log(add, view, width)
+  elseif view.kind == "commit" then
+    require("scm.log").render_commit(add, view, width)
+  else
+    render_status(add, view, width)
+  end
 
   add("")
-  add("  g? for help", { { 0, -1, "ScmDim" } })
+  local hint = view.kind == "status" and "  g? for help" or "  <BS> back · g? for help"
+  add(hint, { { 0, -1, "ScmDim" } })
 
   vim.bo[buf].modifiable = true
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
@@ -145,38 +182,75 @@ local function render(buf, status)
 
   state.panel.entries = entries
   state.panel.sections = sections
-  state.panel.status = status
 end
 
---- Redraw the panel, keeping the cursor on the same file when possible.
-function M.refresh()
-  if not (state.panel.buf and vim.api.nvim_buf_is_valid(state.panel.buf)) then
+--- Redraw the current view, keeping the cursor on the same item when possible.
+---@param opts? { cursor?: "keep"|"top" }
+function M.refresh(opts)
+  opts = opts or {}
+  if not (state.panel.buf and vim.api.nvim_buf_is_valid(state.panel.buf) and state.root) then
     return
   end
-  if not state.root then
+  local keep = opts.cursor ~= "top" and M.current_item() or nil
+  render(state.panel.buf)
+  if not M.is_open() then
     return
   end
-  local keep = M.current_entry()
-  render(state.panel.buf, git.status(state.root))
-  if keep and M.is_open() then
-    for lnum, entry in pairs(state.panel.entries) do
-      if entry.path == keep.path and entry.kind == keep.kind then
+  if opts.cursor == "top" then
+    -- Land on the first selectable line of the new view.
+    for lnum = 1, vim.api.nvim_buf_line_count(state.panel.buf) do
+      if state.panel.entries[lnum] then
         pcall(vim.api.nvim_win_set_cursor, state.panel.win, { lnum, 0 })
         return
       end
     end
-    -- The entry moved sections (e.g. it was just staged); settle on the first file.
-    local first = math.huge
-    for lnum, entry in pairs(state.panel.entries) do
-      if entry.path == keep.path then
-        first = math.min(first, lnum)
+    pcall(vim.api.nvim_win_set_cursor, state.panel.win, { 1, 0 })
+    return
+  end
+  if keep then
+    local fallback
+    for lnum, item in pairs(state.panel.entries) do
+      if item.key == keep.key then
+        pcall(vim.api.nvim_win_set_cursor, state.panel.win, { lnum, 0 })
+        return
+      end
+      -- The file may have moved between sections (e.g. it was just staged).
+      if keep.entry and item.entry and item.entry.path == keep.entry.path then
+        fallback = math.min(fallback or math.huge, lnum)
       end
     end
-    if first ~= math.huge then
-      pcall(vim.api.nvim_win_set_cursor, state.panel.win, { first, 0 })
+    if fallback then
+      pcall(vim.api.nvim_win_set_cursor, state.panel.win, { fallback, 0 })
     end
   end
 end
+
+---------------------------------------------------------------------------
+-- Views
+---------------------------------------------------------------------------
+
+--- Switch the sidebar to another view, remembering where we came from.
+---@param view table
+---@param opts? { replace?: boolean }
+function M.set_view(view, opts)
+  opts = opts or {}
+  if not opts.replace and state.panel.view then
+    state.panel.stack[#state.panel.stack + 1] = state.panel.view
+  end
+  state.panel.view = view
+  M.refresh({ cursor = "top" })
+end
+
+--- Back to the view we came from; from the top level that means the status view.
+function M.back()
+  local previous = table.remove(state.panel.stack)
+  state.panel.view = previous or { kind = "status" }
+  M.refresh({ cursor = "top" })
+end
+
+---------------------------------------------------------------------------
+-- Keymaps
+---------------------------------------------------------------------------
 
 local function act(fn)
   return function()
@@ -203,18 +277,30 @@ end
 local HELP = {
   "SCM panel",
   "",
-  "  <CR> / o   open side-by-side diff (focus the diff)",
-  "  p          open diff, keep focus in the panel",
+  "Working tree (status view)",
+  "  <CR> / o   open the side-by-side diff and jump into it",
+  "  p          open the diff, keep the cursor in the panel",
   "  s / u / -  stage / unstage / toggle the file",
-  "  S / U      stage / unstage everything in the section",
+  "  S / U      stage everything in the section / unstage everything",
   "  X          discard changes (untracked files are deleted)",
   "  cc / ca    commit / amend the last commit",
   "  <Tab>      collapse or expand a section",
-  "  J / K      next / previous file",
-  "  r          refresh",
-  "  q          close the panel and any diff",
   "",
-  "In the diff: ]c / [c jump between changes, q closes it,",
+  "History",
+  "  L          commit history for the repository",
+  "  l          history of the file under the cursor",
+  "  <CR>       on a commit: inspect it (in a file's history: diff that file)",
+  "             on a commit's file: diff it against the parent commit",
+  "  i          inspect the commit under the cursor",
+  "  D          the commit as one unified patch",
+  "  m          load more commits",
+  "  y          yank the commit sha",
+  "  <BS>       back to the previous view",
+  "",
+  "Anywhere",
+  "  J / K      next / previous item     r  refresh     q  close",
+  "",
+  "In a diff: ]c / [c jump between changes, q closes it,",
   "<leader>gS stages the file you are looking at.",
 }
 
@@ -223,18 +309,50 @@ local function attach_keymaps(buf)
     vim.keymap.set("n", lhs, rhs, { buffer = buf, silent = true, nowait = true, desc = "SCM: " .. desc })
   end
 
-  map("<CR>", act(function(entry)
-    diff.open(entry)
-  end), "Open diff")
-  map("o", act(function(entry)
-    diff.open(entry)
-  end), "Open diff")
-  map("<2-LeftMouse>", act(function(entry)
-    diff.open(entry)
-  end), "Open diff")
-  map("p", act(function(entry)
-    diff.open(entry, { focus = false })
-  end), "Preview diff")
+  --- `<CR>` means "open whatever is under the cursor".
+  local function open(focus)
+    return function()
+      local log = require("scm.log")
+      local item = M.current_item()
+      local lnum = M.is_open() and vim.api.nvim_win_get_cursor(state.panel.win)[1] or 0
+      if not item then
+        local section = state.panel.sections[lnum]
+        if section then
+          state.panel.collapsed[section] = not state.panel.collapsed[section]
+          M.refresh()
+        end
+        return
+      end
+      if item.type == "file" then
+        diff.open(item.entry, { focus = focus })
+      elseif item.type == "commit" then
+        -- In a file's history, the interesting thing is that file at that commit.
+        if M.view().path and item.commit.file then
+          log.open_file_diff(item.commit.file)
+          if not focus and M.is_open() then
+            vim.api.nvim_set_current_win(state.panel.win)
+          end
+        else
+          log.open_commit(item.commit.sha)
+        end
+      elseif item.type == "commit_file" then
+        log.open_file_diff(item.file)
+        if not focus and M.is_open() then
+          vim.api.nvim_set_current_win(state.panel.win)
+        end
+      elseif item.type == "patch" then
+        log.open_patch(M.view().sha)
+      elseif item.type == "more" then
+        M.view().limit = M.view().limit + require("scm.log").PAGE
+        M.refresh()
+      end
+    end
+  end
+
+  map("<CR>", open(true), "Open")
+  map("o", open(true), "Open")
+  map("<2-LeftMouse>", open(true), "Open")
+  map("p", open(false), "Open, keep focus in the panel")
 
   map("s", act(function(entry)
     if git.stage(state.root, entry) then
@@ -297,10 +415,57 @@ local function attach_keymaps(buf)
     require("scm.commit").open({ amend = true })
   end, "Commit --amend")
 
+  map("L", function()
+    require("scm.log").open_log()
+  end, "Repository history")
+  map("i", function()
+    local item = M.current_item()
+    local sha = item and item.commit and item.commit.sha
+    if sha then
+      require("scm.log").open_commit(sha)
+    end
+  end, "Inspect this commit")
+  map("l", function()
+    local item = M.current_item()
+    local path = item and ((item.entry and item.entry.path) or (item.file and item.file.path))
+    if not path then
+      vim.notify("scm: put the cursor on a file first", vim.log.levels.WARN)
+      return
+    end
+    require("scm.log").open_log({ path = path })
+  end, "History of this file")
+  map("D", function()
+    local view = M.view()
+    local item = M.current_item()
+    local sha = view.sha or (item and item.commit and item.commit.sha)
+    if sha then
+      require("scm.log").open_patch(sha)
+    end
+  end, "Full patch")
+  map("m", function()
+    local view = M.view()
+    if view.kind == "log" then
+      view.limit = view.limit + require("scm.log").PAGE
+      M.refresh()
+    end
+  end, "Load more commits")
+  map("y", function()
+    local view = M.view()
+    local item = M.current_item()
+    local sha = (item and item.commit and item.commit.sha) or view.sha
+    if not sha then
+      return
+    end
+    vim.fn.setreg("+", sha)
+    vim.fn.setreg('"', sha)
+    vim.notify("scm: yanked " .. sha:sub(1, 7))
+  end, "Yank commit sha")
+  map("<BS>", M.back, "Back")
+
   map("<Tab>", function()
-    local kind = current_section()
-    if kind then
-      state.panel.collapsed[kind] = not state.panel.collapsed[kind]
+    local section = current_section()
+    if section then
+      state.panel.collapsed[section] = not state.panel.collapsed[section]
       M.refresh()
     end
   end, "Toggle section")
@@ -309,24 +474,40 @@ local function attach_keymaps(buf)
     return function()
       local lnum = vim.api.nvim_win_get_cursor(0)[1]
       local last = vim.api.nvim_buf_line_count(buf)
+      local current = state.panel.entries[lnum]
       for i = lnum + step, step > 0 and last or 1, step do
-        if state.panel.entries[i] then
-          vim.api.nvim_win_set_cursor(0, { i, 0 })
+        local item = state.panel.entries[i]
+        -- Commits span two lines; skip to the next distinct item.
+        if item and (not current or item.key ~= current.key) then
+          local target = i
+          -- Going up, stop on the item's first line rather than its last.
+          while step < 0 and state.panel.entries[target - 1] and state.panel.entries[target - 1].key == item.key do
+            target = target - 1
+          end
+          vim.api.nvim_win_set_cursor(0, { target, 0 })
           return
         end
       end
     end
   end
-  map("J", jump(1), "Next file")
-  map("K", jump(-1), "Previous file")
+  map("J", jump(1), "Next item")
+  map("K", jump(-1), "Previous item")
 
-  map("r", M.refresh, "Refresh")
-  map("R", M.refresh, "Refresh")
+  map("r", function()
+    M.refresh()
+  end, "Refresh")
+  map("R", function()
+    M.refresh()
+  end, "Refresh")
   map("q", M.close, "Close panel")
   map("g?", function()
     vim.notify(table.concat(HELP, "\n"), vim.log.levels.INFO, { title = "scm.nvim" })
   end, "Help")
 end
+
+---------------------------------------------------------------------------
+-- Window
+---------------------------------------------------------------------------
 
 local function create_buf()
   local buf = vim.api.nvim_create_buf(false, true)
@@ -336,7 +517,7 @@ local function create_buf()
   vim.bo[buf].buflisted = false
   vim.bo[buf].modifiable = false
   vim.bo[buf].filetype = "scm"
-  pcall(vim.api.nvim_buf_set_name, buf, "scm://status")
+  pcall(vim.api.nvim_buf_set_name, buf, "scm://panel")
   attach_keymaps(buf)
   return buf
 end
@@ -355,7 +536,9 @@ local function setup_win(win)
   wo.statuscolumn = ""
 end
 
-function M.open()
+---@param opts? { keep_focus?: boolean }
+function M.open(opts)
+  opts = opts or {}
   local root = git.root(vim.api.nvim_buf_get_name(0)) or git.root(vim.uv.cwd())
   if not root then
     vim.notify("scm: not inside a git repository", vim.log.levels.WARN)
@@ -363,8 +546,11 @@ function M.open()
   end
   if state.root and state.root ~= root then
     state.panel.collapsed = {}
+    state.panel.stack = {}
+    state.panel.view = { kind = "status" }
   end
   state.root = root
+  state.panel.view = state.panel.view or { kind = "status" }
 
   if not (state.panel.buf and vim.api.nvim_buf_is_valid(state.panel.buf)) then
     state.panel.buf = create_buf()
@@ -379,12 +565,14 @@ function M.open()
     setup_win(win)
     state.panel.win = win
     M.refresh()
-    if win_valid(previous) then
-      vim.api.nvim_set_current_win(win)
+    if opts.keep_focus and win_valid(previous) then
+      vim.api.nvim_set_current_win(previous)
     end
   else
     M.refresh()
-    vim.api.nvim_set_current_win(state.panel.win)
+    if not opts.keep_focus then
+      vim.api.nvim_set_current_win(state.panel.win)
+    end
   end
 end
 
@@ -404,7 +592,7 @@ function M.toggle()
   end
 end
 
---- Diff the file in the current buffer against the index (or HEAD).
+--- Diff the file in the current buffer against the index (or a revision).
 ---@param opts? { rev?: string }
 function M.diff_current(opts)
   opts = opts or {}
