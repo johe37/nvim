@@ -1,9 +1,11 @@
--- Local plugin: VS Code style source control panel + side-by-side diffs.
--- Source lives in <config>/scm.nvim so it can move to its own repo later.
+-- johe37/scm.nvim — VS Code style source control panel + side-by-side diffs.
+-- `dev = true` uses ~/repos/personal/scm.nvim when that checkout exists
+-- (see config.lazy `dev.path` / `fallback`); otherwise lazy clones the GitHub repo.
 return {
   {
-    "scm.nvim",
-    dir = vim.fn.stdpath("config") .. "/scm.nvim",
+    "johe37/scm.nvim",
+    version = "*",
+    dev = true,
     cmd = {
       "Scm",
       "ScmOpen",

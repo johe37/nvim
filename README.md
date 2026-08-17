@@ -10,7 +10,7 @@ A minimal, well-organized Neovim configuration with LSP, completion, and modern 
 - **Search & Replace** — [Spectre](https://github.com/nvim-pack/nvim-spectre)
 - **Tree-sitter Integration** — Syntax highlighting, folding, and context awareness
 - **Git Integration** — [Gitsigns](https://github.com/lewis6991/gitsigns.nvim)
-- **Source Control** — [scm.nvim](scm.nvim/README.md), a local plugin: VS Code style change list (`<leader>gg`) with editable side-by-side diffs, plus GitLens style history browsing (`<leader>gl`)
+- **Source Control** — [scm.nvim](https://github.com/johe37/scm.nvim): VS Code style change list (`<leader>gg`) with editable side-by-side diffs, plus GitLens style history browsing (`<leader>gl`)
 - **Indent Guides** — [Indent Blankline](https://github.com/lukas-reineke/indent-blankline.nvim)
 
 ## Requirements
@@ -61,5 +61,4 @@ lua/
     ├── lsp/         # LSP & completion setup
     ├── telescope.lua
     └── ...
-scm.nvim/            # Local plugin: source control panel + side-by-side diffs
 ```

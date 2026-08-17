@@ -14,6 +14,12 @@ vim.opt.rtp:prepend(lazypath)
 
 -- Load plugins from lua/plugins/
 require("lazy").setup("plugins", {
+  -- Plugins with `dev = true` load from this directory instead of the clone
+  -- under stdpath("data"). Missing checkouts fall back to GitHub.
+  dev = {
+    path = "~/repos/personal",
+    fallback = true,
+  },
   performance = {
     rtp = {
       -- Keep netrw: <leader>e uses :Ex
