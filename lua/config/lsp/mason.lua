@@ -30,18 +30,24 @@ vim.keymap.set("n", "<leader>dE", function()
   vim.diagnostic.jump({ count = -1, severity = vim.diagnostic.severity.ERROR, float = true })
 end, { desc = "Go to previous error" })
 
-local on_attach = function(_, bufnr)
-  local function buf_set_keymap(mode, lhs, rhs, desc)
-    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
-  end
+-- Use LspAttach instead of vim.lsp.config("*").on_attach. Server configs from
+-- nvim-lspconfig (ts_ls, pyright, ...) define their own on_attach and would
+-- overwrite a "*" callback, leaving Vim's built-in `gd` (local declaration).
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("UserLspKeymaps", { clear = true }),
+  callback = function(event)
+    local function buf_set_keymap(mode, lhs, rhs, desc)
+      vim.keymap.set(mode, lhs, rhs, { buffer = event.buf, desc = desc })
+    end
 
-  buf_set_keymap("n", "K", vim.lsp.buf.hover, "Show hover documentation")
-  buf_set_keymap("n", "gd", vim.lsp.buf.definition, "Go to definition")
-  buf_set_keymap("n", "gr", vim.lsp.buf.references, "List references")
-  buf_set_keymap("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol")
-  buf_set_keymap("n", "<leader>ca", vim.lsp.buf.code_action, "Code actions")
-  buf_set_keymap("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
-end
+    buf_set_keymap("n", "K", vim.lsp.buf.hover, "Show hover documentation")
+    buf_set_keymap("n", "gd", vim.lsp.buf.definition, "Go to definition")
+    buf_set_keymap("n", "gr", vim.lsp.buf.references, "List references")
+    buf_set_keymap("n", "<leader>rn", vim.lsp.buf.rename, "Rename symbol")
+    buf_set_keymap("n", "<leader>ca", vim.lsp.buf.code_action, "Code actions")
+    buf_set_keymap("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
+  end,
+})
 
 -- Initialize UI and Mason
 require("fidget").setup({})
@@ -65,7 +71,6 @@ mason_lspconfig.setup({
 -- Defaults applied to every LSP server
 vim.lsp.config("*", {
   capabilities = capabilities,
-  on_attach = on_attach,
 })
 
 -- Per-server overrides
