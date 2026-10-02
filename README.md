@@ -12,10 +12,11 @@ A minimal, well-organized Neovim configuration with LSP, completion, and modern 
 - **Git Integration** — [Gitsigns](https://github.com/lewis6991/gitsigns.nvim)
 - **Source Control** — [scm.nvim](https://github.com/johe37/scm.nvim): VS Code style change list (`<leader>gg`) with editable side-by-side diffs, plus GitLens style history browsing (`<leader>gl`)
 - **Indent Guides** — [Indent Blankline](https://github.com/lukas-reineke/indent-blankline.nvim)
+- **Statusline** — [mini.statusline](https://github.com/nvim-mini/mini.statusline): mode, git branch, diagnostics, filename, and cursor position
 
 ## Requirements
 
-- Neovim ≥ 0.9.0
+- Neovim ≥ 0.11.0
 - ripgrep (for Telescope live grep)
 
 ## Installation
