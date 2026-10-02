@@ -11,6 +11,7 @@ vim.g.mapleader = " "  -- Use space as leader key
 vim.opt.guicursor = ""         -- Use block (fat) cursor
 vim.opt.number = true          -- Show line numbers
 vim.opt.relativenumber = false -- Don't mix in a relative-number column
+vim.opt.cursorline = true      -- Highlight the current line; the cursor is a block
 vim.opt.signcolumn = "yes"     -- Reserve one gutter for git/LSP signs
 vim.opt.wrap = false           -- Disable line wrapping
 vim.opt.termguicolors = true   -- Enable true color support

@@ -22,6 +22,9 @@ return {
 
     local capabilities = cmp_lsp.default_capabilities()
 
+    -- Message text only on the cursor line. Signs and underlines stay on every line.
+    local diagnostic_virtual_text = { current_line = true }
+
     vim.keymap.set("n", "<leader>dc", vim.diagnostic.open_float,
       { desc = "Show diagnostic for current line" })
     vim.keymap.set("n", "dp", function()
@@ -35,8 +38,11 @@ return {
     vim.keymap.set("n", "<leader>dq", vim.diagnostic.setqflist,
       { desc = "Send all diagnostics to quickfix" })
     vim.keymap.set("n", "<leader>dt", function()
-      local enabled = vim.diagnostic.config().virtual_text == true
-      vim.diagnostic.config({ virtual_text = not enabled })
+      local current = vim.diagnostic.config().virtual_text
+      local enabled = current ~= false and current ~= nil
+      vim.diagnostic.config({
+        virtual_text = enabled and false or diagnostic_virtual_text,
+      })
     end, { desc = "Toggle diagnostic virtual text" })
     vim.keymap.set("n", "<leader>de", function()
       vim.diagnostic.jump({ count = 1, severity = vim.diagnostic.severity.ERROR, float = true })
@@ -192,6 +198,16 @@ return {
     })
 
     vim.diagnostic.config({
+      virtual_text = diagnostic_virtual_text,
+      underline = true,
+      signs = {
+        text = {
+          [vim.diagnostic.severity.ERROR] = "E",
+          [vim.diagnostic.severity.WARN] = "W",
+          [vim.diagnostic.severity.INFO] = "I",
+          [vim.diagnostic.severity.HINT] = "H",
+        },
+      },
       float = {
         focusable = false,
         style = "minimal",

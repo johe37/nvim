@@ -51,6 +51,7 @@ local modules = {
   "gitsigns",
   "ibl",
   "mason",
+  "mini.statusline",
   "scm",
   "spectre",
   "telescope",
@@ -84,6 +85,44 @@ end
 
 if vim.g.colors_name ~= "vscode" then
   fail("expected colorscheme vscode, got " .. tostring(vim.g.colors_name))
+end
+
+if not vim.o.cursorline then
+  fail("cursorline should be enabled")
+end
+if vim.o.showmode then
+  fail("showmode should be off; mode is in the statusline")
+end
+local status = MiniStatusline.active()
+if type(status) ~= "string" or not status:find("Normal", 1, true) then
+  fail("statusline active content missing mode, got " .. vim.inspect(status))
+end
+
+local diag = vim.diagnostic.config()
+local virtual_text = diag and diag.virtual_text
+if type(virtual_text) ~= "table" or virtual_text.current_line ~= true then
+  fail("diagnostic virtual text should be limited to the current line, got " .. vim.inspect(virtual_text))
+end
+if diag.underline ~= true then
+  fail("diagnostic underline should be enabled")
+end
+local sign_text = type(diag.signs) == "table" and diag.signs.text or {}
+local expected_signs = {
+  [vim.diagnostic.severity.ERROR] = "E",
+  [vim.diagnostic.severity.WARN] = "W",
+  [vim.diagnostic.severity.INFO] = "I",
+  [vim.diagnostic.severity.HINT] = "H",
+}
+for severity, label in pairs(expected_signs) do
+  if sign_text[severity] ~= label then
+    fail("diagnostic sign " .. label .. " missing, got " .. vim.inspect(sign_text))
+    break
+  end
+end
+
+local borderchars = require("telescope.config").values.borderchars
+if borderchars[1] ~= "─" or borderchars[5] ~= "┌" then
+  fail("telescope border should be a thin square frame, got " .. vim.inspect(borderchars))
 end
 
 local grep_args = require("telescope.config").values.vimgrep_arguments

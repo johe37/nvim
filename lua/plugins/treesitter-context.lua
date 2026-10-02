@@ -13,10 +13,12 @@ return {
         multiline_threshold = 20,-- Max lines for a node to be displayed
         trim_scope = 'outer',    -- 'inner' or 'outer'
         mode = 'cursor',         -- 'cursor' or 'topline'
-        separator = nil,         -- Use "─" for a separator line
+        separator = "─",
         zindex = 20,             -- Z-index of the context window
         on_attach = nil          -- Custom callback when attaching
       })
+      -- Default group links to FloatBorder, which is body text. Match splits instead.
+      vim.api.nvim_set_hl(0, "TreesitterContextSeparator", { link = "WinSeparator" })
     end,
   },
 }
