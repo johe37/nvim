@@ -4,7 +4,7 @@
 return {
   {
     "johe37/scm.nvim",
-    version = "*",
+    -- version = "*",
     dev = true,
     cmd = {
       "Scm",
