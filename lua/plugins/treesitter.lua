@@ -1,6 +1,7 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
     lazy = false,
     build = ":TSUpdate",
     config = function()
@@ -21,6 +22,13 @@ return {
         "markdown",
         "c",
         "diff",
+      })
+
+      -- main-grenen aktiverar inte highlighting själv
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(args)
+          pcall(vim.treesitter.start, args.buf)
+        end,
       })
     end,
   },
